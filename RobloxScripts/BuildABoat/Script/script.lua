@@ -1,124 +1,73 @@
-local image = "https://static.wixstatic.com/media/2cd43b_ad23f564a47043fbb05fd123ecf4eb8f~mv2.png/v1/fill/w_320,h_320,q_90/2cd43b_ad23f564a47043fbb05fd123ecf4eb8f~mv2.png"
-local scaledown = "9"
-
-
-
-
-local PartName = "TitaniumBlock"
-
-
-
-
-
-
-
-
-
-
-
-_G.Generating = true
-local currentColor = Color3.new(1,0,0)
-function colorPart(Part,Color,FolderPart)
-	if _G.Generating == true then
-
-
-				local args = {
-					[1] = {
-						[1] = {
-							[1] = Part,
-							[2] = currentColor
-						}
-					}
-				}
-
-				game:GetService("Players"):WaitForChild(game.Players.LocalPlayer.Name):WaitForChild("Backpack"):WaitForChild("PaintingTool"):WaitForChild("RF"):InvokeServer(unpack(args))
-				local args = {
-					[1] = Part,
-					[2] = Vector3.new(100,100,100),
-					[3] = Part.PPart.CFrame
-				}
-
-				game:GetService("Players"):WaitForChild(game.Players.LocalPlayer.Name):WaitForChild("Backpack"):FindFirstChild("ScalingTool"):WaitForChild("RF"):InvokeServer(unpack(args))
-				
-				
-			end
-
-
-end
-workspace:WaitForChild("ClearAllPlayersBoatParts"):FireServer()
-local number = tonumber(game:GetService("Players").LocalPlayer.PlayerGui.BuildGui.InventoryFrame.ScrollingFrame.BlocksFrame[PartName].AmountText.Text)
-function createPart(CFRAME)
-local args = {
-    [1] = PartName,
-    [2] = number,
-    [3] = nil,
-    [4] = CFRAME,
-    [5] = true,
-    [6] = 1,
-    [7] = CFRAME,
-    [8] = false
-}
-
-game:GetService("Players").LocalPlayer.Backpack.BuildingTool.RF:InvokeServer(unpack(args))
-
-end
-game.Workspace.ChildAdded:Connect(function(part)
-	if part.Name == PartName then
-		if tostring(part:WaitForChild("Tag").Value) == game.Players.LocalPlayer.Name then
-		colorPart(part,currentColor)
-		end
-	end
-end)
-
-
-  -- just put an image url here inside ""
-
-
-
-
-local convert = loadstring(game:HttpGet("https://raw.githubusercontent.com/titusj3026/MyFiles/main/RobloxScripts/BuildABoat/convert.lua", true))()
-
-local lp = game.Players.LocalPlayer
-local rs = game:GetService"RunService"
-
-
-local PartFolder = Instance.new("Folder",workspace)
-PartFolder.Name = math.random(-500,500)
-local folder = {}
-
-local resize = function(image,size,s)
-    local size = size
-    if s then
-     size = Vector2.new(image.size.X/s,image.size.Y/s)
+local function duplicateAndMove(object, direction, distance)
+    local newObject = object:Clone()
+    newObject.Parent = object.Parent
+    
+    if direction == "right" then
+        newObject.Position = newObject.Position + Vector3.new(distance, 0, 0)
+    elseif direction == "left" then
+        newObject.Position = newObject.Position + Vector3.new(-distance, 0, 0)
+    elseif direction == "up" then
+        newObject.Position = newObject.Position + Vector3.new(0, distance, 0)
+    elseif direction == "down" then
+        newObject.Position = newObject.Position + Vector3.new(0, -distance, 0)
     end
-    local new = {}
-    local is = Vector2.new(image.size.X/size.X,image.size.Y/size.Y)
-    for x = 1,size.X do
-        for y = 1,size.Y do
-            local pix = image.image[tostring(Vector2.new(math.floor(x*is.X+.5),math.floor(y*is.Y+.5)))]
-            pix.x = x;pix.y = y
-            new[#new+1] =  pix
+    
+    return newObject
+end
+
+local function createMovementGUI()
+    local screenGui = Instance.new("ScreenGui")
+    screenGui.Parent = game.Players.LocalPlayer:WaitForChild("PlayerGui")
+    
+    local frame = Instance.new("Frame")
+    frame.Size = UDim2.new(0, 200, 0, 150)
+    frame.Position = UDim2.new(0.5, -100, 0.5, -75)
+    frame.BackgroundColor3 = Color3.new(0.8, 0.8, 0.8)
+    frame.Parent = screenGui
+    
+    local title = Instance.new("TextLabel")
+    title.Size = UDim2.new(1, 0, 0, 30)
+    title.Text = "Move Duplicated Object"
+    title.Parent = frame
+    
+    local directions = {"Right", "Left", "Up", "Down"}
+    local buttonSize = UDim2.new(0.4, 0, 0, 30)
+    local spacing = 10
+    
+    for i, dir in ipairs(directions) do
+        local button = Instance.new("TextButton")
+        button.Size = buttonSize
+        button.Position = UDim2.new(0.1, 0, 0, 40 + (i-1) * (buttonSize.Y.Offset + spacing))
+        button.Text = dir
+        button.Parent = frame
+        
+        button.MouseButton1Click:Connect(function()
+            local selectedObject = game.Workspace.SelectedObject
+            if selectedObject then
+                duplicateAndMove(selectedObject, dir:lower(), 5)
+            else
+                print("No object selected")
+            end
+        end)
+    end
+end
+
+createMovementGUI()
+
+-- Fungsi untuk memilih objek
+local function selectObject()
+    local mouse = game.Players.LocalPlayer:GetMouse()
+    local input = game:GetService("UserInputService")
+    
+    input.InputBegan:Connect(function(inputObject)
+        if inputObject.UserInputType == Enum.UserInputType.MouseButton1 then
+            local target = mouse.Target
+            if target and target:IsA("BasePart") then
+                game.Workspace.SelectedObject = target
+                print("Selected object:", target.Name)
+            end
         end
-    end
-    return new
+    end)
 end
 
-local origin = lp.Character.PrimaryPart.Position+Vector3.new(0,0,0)
-local skip = 0
-for i,v in pairs(resize(convert(image,file),nil,scaledown)) do
-    if skip >= 3000 then skip = 0 rs.Heartbeat:Wait() end
-    skip=skip+1 
-    local part = Instance.new("Part")
-    part.Position = origin + Vector3.new(v.x/3,i*0.0001,v.y/3)
-    part.Color = Color3.new(v.r,v.g,v.b)
-    part.Parent = workspace
-    part.Anchored = true
-    part.Size = Vector3.new(100,100,100)
-    currentColor = part.Color
-    createPart(part.CFrame)
-    part.Parent = PartFolder
-    part.Transparency = 1
-    folder[#folder+1]=part
-    end
-
-    _G.Generating = false
+selectObject()
