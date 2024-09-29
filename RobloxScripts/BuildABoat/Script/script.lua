@@ -34,7 +34,7 @@ function colorPart(Part,Color,FolderPart)
 				game:GetService("Players"):WaitForChild(game.Players.LocalPlayer.Name):WaitForChild("Backpack"):WaitForChild("PaintingTool"):WaitForChild("RF"):InvokeServer(unpack(args))
 				local args = {
 					[1] = Part,
-					[2] = Vector3.new(50,50,50),
+					[2] = Vector3.new(100,100,100),
 					[3] = Part.PPart.CFrame
 				}
 
@@ -113,7 +113,7 @@ for i,v in pairs(resize(convert(image,file),nil,scaledown)) do
     part.Color = Color3.new(v.r,v.g,v.b)
     part.Parent = workspace
     part.Anchored = true
-    part.Size = Vector3.new(50,50,50)
+    part.Size = Vector3.new(100,100,100)
     currentColor = part.Color
     createPart(part.CFrame)
     part.Parent = PartFolder
